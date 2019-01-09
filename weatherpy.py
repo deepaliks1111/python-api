@@ -54,16 +54,89 @@ len(cities)
 #Perform API Calls
 #**********************
 
+#Creating base URL and empty dataframe#Creatin 
+url = f'https://api.openweathermap.org/data/2.5/weather?APPID={api_key}&units=imperial&q='
+data_df = pd.DataFrame({'City':[],
+                        'Cloudiness':[],
+                        'Country':[],
+                        'Date':[],
+                        'Humidity':[],
+                        'Lat':[],
+                        'Lng':[],
+                        'Max_temp':[],
+                        'Wind_speed':[]
+                       })
+    
+
+#API request for each city and populating dataframe in the same loop
+i = 0
+for city in cities:    
+    response_req = requests.get(url+city)
+    response = response_req.json()
+
+    if (response['cod'] == 200):
+        i = i+1
+        print(f'Processing Record {i} | {city}')
+        print(response_req.url)
+
+        data_df.loc[i,'City'] = city
+        data_df.loc[i,'Cloudiness'] = response['clouds']['all']
+        data_df.loc[i,'Country'] = response['sys']['country']
+        data_df.loc[i,'Date'] = now.strftime("%Y-%m-%d") 
+        data_df.loc[i,'Humidity'] = response['main']['humidity']
+        data_df.loc[i,'Lat'] = response['coord']['lat']
+        data_df.loc[i,'Lng'] = response['coord']['lon']
+        data_df.loc[i,'Max_temp'] = response['main']['temp_max']
+        data_df.loc[i,'Wind_speed'] = response['wind']['speed']
+    else:
+        print('City not found. Skipping')
+            
+print("-----------------------------")
+print("Data Retrieval Complete")      
+print("-----------------------------")
 
 #**********************
 #Convert Raw Data to DataFrame
 #**********************
+data_df.to_csv('weather_data.csv')
+data_df.head()
 
 #**********************
 #Plotting the Data
 #**********************
 
 #Latitude vs. Temperature Plot
+plt.figure()
+plt.scatter(data_df['Lat'],data_df['Max_temp'])
+plt.grid()
+plt.xlabel('Latitude')
+plt.ylabel('Max temperature (F)')
+plt.title(f"City Latitude vs Max Temp ({data_df.iloc[0]['Date']})")
+plt.savefig('LatvsTemp.png')
+
 #Latitude vs. Humidity Plot
+plt.figure()
+plt.scatter(data_df['Lat'],data_df['Humidity'])
+plt.grid()
+plt.xlabel('Latitude')
+plt.ylabel('Humidity (%)')
+plt.title(f"City Latitude vs Humidity ({data_df.iloc[0]['Date']})")
+plt.savefig('LatvsHumidity.png')
+
 #Latitude vs. Cloudiness Plot
+plt.figure()
+plt.scatter(data_df['Lat'],data_df['Cloudiness'])
+plt.grid()
+plt.xlabel('Latitude')
+plt.ylabel('Cloudiness (%)')
+plt.title(f"City Latitude vs Cloudiness ({data_df.iloc[0]['Date']})")
+plt.savefig('LatvsCloudiness.png')
+
 #Latitude vs. Wind Speed Plot
+plt.figure()
+plt.scatter(data_df['Lat'],data_df['Wind_speed'])
+plt.grid()
+plt.xlabel('Latitude')
+plt.ylabel('Wind Speed (mph)')
+plt.title(f"City Latitude vs Wind Speed ({data_df.iloc[0]['Date']})")
+plt.savefig('LatvsWindSpeed.png')
